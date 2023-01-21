@@ -49,17 +49,17 @@ public class FieldOrientedDriveCommand extends CommandBase
             driveSubsystem.gyro.zeroYaw();
         }
 
-        double[] joystickInputs = getJoystickInput();
+        double[] input = getJoystickInput();
 
-        ChassisSpeeds speeds =  ChassisSpeeds.fromFieldRelativeSpeeds(joystickInputs[0] * Constants.driveSpeed, joystickInputs[1] * Constants.driveSpeed, joystickInputs[2] * Constants.turnSpeed, driveSubsystem.gyro.getRotation2d());
+        ChassisSpeeds speeds =  ChassisSpeeds.fromFieldRelativeSpeeds(input[0] * Constants.driveSpeed, input[1] * Constants.driveSpeed, input[2] * Constants.turnSpeed, driveSubsystem.gyro.getRotation2d());
 
         driveSubsystem.drive(speeds);
     }
 
     public double[] getJoystickInput() {
-        double joystickY = Constants.joystick.getY() * -1;
-        double joystickX = Constants.joystick.getX() * -1;
-        double joystickZ = Constants.joystick.getZ() * -1;
+        double joystickY = Constants.joystick.getY() * Math.abs(Constants.joystick.getY()) * -1;
+        double joystickX = Constants.joystick.getX() * Math.abs(Constants.joystick.getX()) * -1;
+        double joystickZ = Constants.joystick.getZ() * Math.abs(Constants.joystick.getZ()) * -1;
 
         if  (Math.abs(joystickY) <= Constants.joystickMin) {
             joystickY = 0.0; }
@@ -72,7 +72,23 @@ public class FieldOrientedDriveCommand extends CommandBase
 
         return joystickReturn;
     }
-    
+
+    public double[] getXboxInput() {
+        double xboxLeftY = Constants.xbox.getLeftY() * Math.abs(Constants.xbox.getLeftY()) * -1;
+        double xboxLeftX = Constants.xbox.getLeftX() * Math.abs(Constants.xbox.getLeftX()) * -1;
+        double xboxRightX = Constants.xbox.getRightX() * Math.abs(Constants.xbox.getRightX()) * -1;
+
+        if  (Math.abs(xboxLeftY) <= Constants.xboxMin) {
+            xboxLeftY = 0.0; }
+        if (Math.abs(xboxLeftX) <= Constants.xboxMin) {
+            xboxLeftX = 0.0; }
+        if (Math.abs(xboxRightX) <= Constants.xboxMin) {
+            xboxRightX = 0.0; }
+
+        double[] xboxReturn = new double[] {xboxLeftY, xboxLeftX, xboxRightX};
+
+        return xboxReturn;
+    }
     
     // Called once the command ends or is interrupted.
     @Override
