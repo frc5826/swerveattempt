@@ -11,10 +11,7 @@ import com.ctre.phoenix.sensors.SensorVelocityMeasPeriod;
 import com.ctre.phoenix.sensors.WPI_CANCoder;
 import com.revrobotics.CANSparkMax;
 import com.revrobotics.SparkMaxPIDController;
-import com.swervedrivespecialties.swervelib.Mk4SwerveModuleHelper;
-import com.swervedrivespecialties.swervelib.Mk4iSwerveModuleHelper;
-import com.swervedrivespecialties.swervelib.SwerveModule;
-import com.swervedrivespecialties.swervelib.SwerveModuleFactory;
+import com.swervedrivespecialties.swervelib.*;
 import com.swervedrivespecialties.swervelib.ctre.CanCoderAbsoluteConfiguration;
 import com.swervedrivespecialties.swervelib.rev.NeoSteerConfiguration;
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -30,6 +27,7 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import frc.robot.subsystems.PID;
+import frc.robot.swerve.SteerControllerFactoryBuilder;
 import org.opencv.core.Mat;
 
 
@@ -92,6 +90,8 @@ public class Robot extends TimedRobot
     @Override
     public void autonomousInit()
     {
+        SteerControllerFactoryBuilder.ControllerImplementation.setAngleAbsolute();
+
         autonomousCommand = robotContainer.getAutonomousCommand();
         
         // schedule the autonomous command (example)
@@ -111,6 +111,7 @@ public class Robot extends TimedRobot
     public void teleopInit()
     {
 
+        SteerControllerFactoryBuilder.ControllerImplementation.setAngleAbsolute();
 
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to

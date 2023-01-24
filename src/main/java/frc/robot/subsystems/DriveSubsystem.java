@@ -20,6 +20,7 @@ import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.swervedrivespecialties.swervelib.ctre.CanCoderFactoryBuilder;
+import frc.robot.Constants;
 import frc.robot.swerve.ModuleBuilder;
 
 
@@ -51,23 +52,23 @@ public class DriveSubsystem extends SubsystemBase
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
         frontLeftModule = ModuleBuilder.createModule(
                 shuffleboardTab.getLayout("Front Left Module", BuiltInLayouts.kList)
-                        .withSize(2, 4)
+                        .withSize(2, 2)
                         .withPosition(0, 0),
                 Mk4SwerveModuleHelper.GearRatio.L1, 2, 1, 51, -Math.toRadians(50 - 180)); //front left
         frontRightModule = ModuleBuilder.createModule(
                 shuffleboardTab.getLayout("Front Right Module", BuiltInLayouts.kList)
-                        .withSize(2, 4)
-                        .withPosition(1, 0),
+                        .withSize(2, 2)
+                        .withPosition(2, 0),
                 Mk4SwerveModuleHelper.GearRatio.L1, 4, 3, 49, -Math.toRadians(99.5 + 306)); //front right
         backLeftModule = ModuleBuilder.createModule(
                 shuffleboardTab.getLayout("Back Left Module", BuiltInLayouts.kList)
-                        .withSize(2, 4)
-                        .withPosition(2, 0),
+                        .withSize(2, 2)
+                        .withPosition(4, 0),
                 Mk4SwerveModuleHelper.GearRatio.L1, 8, 7, 50, -Math.toRadians(26.4)); //back left
         backRightModule = ModuleBuilder.createModule(
                 shuffleboardTab.getLayout("Back Right Module", BuiltInLayouts.kList)
-                        .withSize(2, 4)
-                        .withPosition(3, 0),
+                        .withSize(2, 2)
+                        .withPosition(6, 0),
                 Mk4SwerveModuleHelper.GearRatio.L1, 6, 5, 52, -Math.toRadians(38.1)); //back right
 
         //TODO wheel locations
@@ -98,7 +99,7 @@ public class DriveSubsystem extends SubsystemBase
         SwerveModuleState backRight = moduleStates[3];
 
         //set motor speeds
-        frontLeftModule.set(frontLeft.speedMetersPerSecond, frontLeft.angle.getRadians()); // frontLeft.angle.getDegrees()
+        frontLeftModule.set(frontLeft.speedMetersPerSecond, frontLeft.angle.getRadians());
         frontRightModule.set(frontRight.speedMetersPerSecond, frontRight.angle.getRadians());
         backLeftModule.set(backLeft.speedMetersPerSecond, backLeft.angle.getRadians());
         backRightModule.set(backRight.speedMetersPerSecond, backRight.angle.getRadians());

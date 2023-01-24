@@ -27,7 +27,7 @@ public class AutoBalanceCommand extends CommandBase {
 
     @Override
     public void execute() {
-        //TODO switch pitch and roll cause the roborio is oriented wrong 
+        //TODO switch pitch and roll cause the roborio is oriented wrong
         double pitch = driveSubsystem.getGyroPitch();
         ChassisSpeeds speeds = new ChassisSpeeds(0, PIDy.calculate(Math.sin(Math.toRadians(pitch))), Math.signum(pitch) * PIDz.calculate(driveSubsystem.getGyroRoll()));
         driveSubsystem.drive(speeds);

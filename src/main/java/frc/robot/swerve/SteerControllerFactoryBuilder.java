@@ -6,6 +6,8 @@ import com.swervedrivespecialties.swervelib.ctre.CanCoderAbsoluteConfiguration;
 import com.swervedrivespecialties.swervelib.rev.NeoSteerConfiguration;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
 
+import java.util.ArrayList;
+
 import static com.swervedrivespecialties.swervelib.rev.RevUtils.checkNeoError;
 
 public final class SteerControllerFactoryBuilder {
@@ -92,6 +94,7 @@ public final class SteerControllerFactoryBuilder {
             if (hasPidConstants()) {
                 checkNeoError(controller.setP(pidProportional), "Failed to set NEO PID proportional constant");
                 checkNeoError(controller.setI(pidIntegral), "Failed to set NEO PID integral constant");
+                checkNeoError(controller.setIZone(Math.PI / 180), "Failed to set NEO PID i zone constant");
                 checkNeoError(controller.setD(pidDerivative), "Failed to set NEO PID derivative constant");
             }
             checkNeoError(controller.setFeedbackDevice(integratedEncoder), "Failed to set NEO PID feedback device");
@@ -101,7 +104,7 @@ public final class SteerControllerFactoryBuilder {
     }
 
     public static class ControllerImplementation implements SteerController {
-        private static final int ENCODER_RESET_ITERATIONS = 500;
+        private static final int ENCODER_RESET_ITERATIONS = 50;
         private static final double ENCODER_RESET_MAX_ANGULAR_VELOCITY = Math.toRadians(0.5);
 
         @SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -114,11 +117,17 @@ public final class SteerControllerFactoryBuilder {
 
         private double resetIteration = 0;
 
+        public static ArrayList<RelativeEncoder> MotorEncoders = new ArrayList<RelativeEncoder>(4);
+        public static ArrayList<AbsoluteEncoder> AbsoluteEncoders = new ArrayList<AbsoluteEncoder>(4);
+
         public ControllerImplementation(CANSparkMax motor, AbsoluteEncoder absoluteEncoder) {
             this.motor = motor;
             this.controller = motor.getPIDController();
             this.motorEncoder = motor.getEncoder();
             this.absoluteEncoder = absoluteEncoder;
+
+            MotorEncoders.add(motorEncoder);
+            AbsoluteEncoders.add(absoluteEncoder);
         }
 
         @Override
@@ -159,7 +168,25 @@ public final class SteerControllerFactoryBuilder {
 
             this.referenceAngleRadians = referenceAngleRadians;
 
-            controller.setReference(adjustedReferenceAngleRadians, CANSparkMax.ControlType.kPosition);
+            double referenceAngleModified = referenceAngleRadians - Math.PI;
+            double currentAngleModModified = currentAngleRadiansMod - Math.PI;
+            double angleDifference = referenceAngleModified - currentAngleModModified;
+
+            if (angleDifference > Math.PI) {
+                angleDifference -= 2 * Math.PI;
+            } else if (angleDifference < -Math.PI) {
+                angleDifference += 2 * Math.PI;
+            }
+
+            //controller.setOutputRange(-1, 1);
+
+            if (Math.abs(angleDifference) < Math.PI / 270 ) {
+                motor.stopMotor();
+            } else {
+                controller.setReference(adjustedReferenceAngleRadians, CANSparkMax.ControlType.kPosition);
+            }
+
+
         }
 
         @Override
@@ -171,6 +198,15 @@ public final class SteerControllerFactoryBuilder {
             }
 
             return motorAngleRadians;
+        }
+
+        public static void setAngleAbsolute() {
+            for(int i = 0; i < 4; i++) {
+                double absoluteAngle = AbsoluteEncoders.get(i).getAbsoluteAngle();
+                MotorEncoders.get(i).setPosition(absoluteAngle);
+            }
+
+
         }
     }
 }

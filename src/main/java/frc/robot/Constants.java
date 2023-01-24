@@ -38,7 +38,9 @@ public final class Constants {
 
     public static double joystickMin = 0.15;
 
-    public static double turnSpeed = 10;
-    public static double driveSpeed = 3;
+    public static double turnSpeed = 12;
+    public static double driveSpeed = 6;
+
+    public static double turnDeadBand = Math.PI / 180;
 
 }
