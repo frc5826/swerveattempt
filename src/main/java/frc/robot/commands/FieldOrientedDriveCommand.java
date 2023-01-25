@@ -45,7 +45,7 @@ public class FieldOrientedDriveCommand extends CommandBase
     @Override
     public void execute() {
 
-        if(Constants.joystick.getRawButtonPressed(8)) {
+        if (Constants.joystick.getRawButtonPressed(8)) {
             driveSubsystem.gyro.zeroYaw();
         }
 

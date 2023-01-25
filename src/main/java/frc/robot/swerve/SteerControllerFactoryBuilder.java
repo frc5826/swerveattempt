@@ -5,6 +5,7 @@ import com.swervedrivespecialties.swervelib.*;
 import com.swervedrivespecialties.swervelib.ctre.CanCoderAbsoluteConfiguration;
 import com.swervedrivespecialties.swervelib.rev.NeoSteerConfiguration;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardContainer;
+import frc.robot.subsystems.PID;
 
 import java.util.ArrayList;
 
@@ -86,9 +87,7 @@ public final class SteerControllerFactoryBuilder {
             checkNeoError(integratedEncoder.setPositionConversionFactor(2.0 * Math.PI * moduleConfiguration.getSteerReduction()), "Failed to set NEO encoder conversion factor");
             checkNeoError(integratedEncoder.setVelocityConversionFactor(2.0 * Math.PI * moduleConfiguration.getSteerReduction() / 60.0), "Failed to set NEO encoder conversion factor");
             checkNeoError(integratedEncoder.setPosition(absoluteEncoder.getAbsoluteAngle()), "Failed to set NEO encoder position");
-            System.out.println("Values for module: "+ ((CanCoderAbsoluteConfiguration) steerConfiguration.getEncoderConfiguration()).getId() + ":");
-            System.out.println(absoluteEncoder.getAbsoluteAngle());
-            System.out.println(integratedEncoder.getPosition());
+//            System.out.println("Values for module: "+ ((CanCoderAbsoluteConfiguration) steerConfiguration.getEncoderConfiguration()).getId() + ":");
 
             SparkMaxPIDController controller = motor.getPIDController();
             if (hasPidConstants()) {
@@ -99,12 +98,12 @@ public final class SteerControllerFactoryBuilder {
             }
             checkNeoError(controller.setFeedbackDevice(integratedEncoder), "Failed to set NEO PID feedback device");
 
-            return new frc.robot.swerve.SteerControllerFactoryBuilder.ControllerImplementation(motor, absoluteEncoder);
+            return new frc.robot.swerve.SteerControllerFactoryBuilder.ControllerImplementation(motor, absoluteEncoder, new PID(0.4, pidIntegral, 0, 1, 0.0, Math.PI / 360));
         }
     }
 
     public static class ControllerImplementation implements SteerController {
-        private static final int ENCODER_RESET_ITERATIONS = 50;
+        private static final int ENCODER_RESET_ITERATIONS = 500;
         private static final double ENCODER_RESET_MAX_ANGULAR_VELOCITY = Math.toRadians(0.5);
 
         @SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -120,7 +119,9 @@ public final class SteerControllerFactoryBuilder {
         public static ArrayList<RelativeEncoder> MotorEncoders = new ArrayList<RelativeEncoder>(4);
         public static ArrayList<AbsoluteEncoder> AbsoluteEncoders = new ArrayList<AbsoluteEncoder>(4);
 
-        public ControllerImplementation(CANSparkMax motor, AbsoluteEncoder absoluteEncoder) {
+        private PID pid;
+
+        public ControllerImplementation(CANSparkMax motor, AbsoluteEncoder absoluteEncoder, PID pid) {
             this.motor = motor;
             this.controller = motor.getPIDController();
             this.motorEncoder = motor.getEncoder();
@@ -128,6 +129,8 @@ public final class SteerControllerFactoryBuilder {
 
             MotorEncoders.add(motorEncoder);
             AbsoluteEncoders.add(absoluteEncoder);
+
+            this.pid = pid;
         }
 
         @Override
@@ -137,56 +140,11 @@ public final class SteerControllerFactoryBuilder {
 
         @Override
         public void setReferenceAngle(double referenceAngleRadians) {
-            double currentAngleRadians = motorEncoder.getPosition();
-
-            // Reset the NEO's encoder periodically when the module is not rotating.
-            // Sometimes (~5% of the time) when we initialize, the absolute encoder isn't fully set up, and we don't
-            // end up getting a good reading. If we reset periodically this won't matter anymore.
-            if (motorEncoder.getVelocity() < ENCODER_RESET_MAX_ANGULAR_VELOCITY) {
-                if (++resetIteration >= ENCODER_RESET_ITERATIONS) {
-                    resetIteration = 0;
-                    double absoluteAngle = absoluteEncoder.getAbsoluteAngle();
-                    motorEncoder.setPosition(absoluteAngle);
-                    currentAngleRadians = absoluteAngle;
-                }
-            } else {
-                resetIteration = 0;
-            }
-
-            double currentAngleRadiansMod = currentAngleRadians % (2.0 * Math.PI);
-            if (currentAngleRadiansMod < 0.0) {
-                currentAngleRadiansMod += 2.0 * Math.PI;
-            }
-
-            // The reference angle has the range [0, 2pi) but the Neo's encoder can go above that
-            double adjustedReferenceAngleRadians = referenceAngleRadians + currentAngleRadians - currentAngleRadiansMod;
-            if (referenceAngleRadians - currentAngleRadiansMod > Math.PI) {
-                adjustedReferenceAngleRadians -= 2.0 * Math.PI;
-            } else if (referenceAngleRadians - currentAngleRadiansMod < -Math.PI) {
-                adjustedReferenceAngleRadians += 2.0 * Math.PI;
-            }
-
-            this.referenceAngleRadians = referenceAngleRadians;
-
-            double referenceAngleModified = referenceAngleRadians - Math.PI;
-            double currentAngleModModified = currentAngleRadiansMod - Math.PI;
-            double angleDifference = referenceAngleModified - currentAngleModModified;
-
-            if (angleDifference > Math.PI) {
-                angleDifference -= 2 * Math.PI;
-            } else if (angleDifference < -Math.PI) {
-                angleDifference += 2 * Math.PI;
-            }
-
-            //controller.setOutputRange(-1, 1);
-
-            if (Math.abs(angleDifference) < Math.PI / 270 ) {
-                motor.stopMotor();
-            } else {
-                controller.setReference(adjustedReferenceAngleRadians, CANSparkMax.ControlType.kPosition);
-            }
-
-
+//            System.out.println("values for " + motor.getDeviceId() + ":");
+//            System.out.println("Target: " +referenceAngleRadians);
+//            System.out.println("Current: " + absoluteEncoder.getAbsoluteAngle() );
+//            pid.setGoal(referenceAngleRadians);
+//            motor.set(pid.calculate(absoluteEncoder.getAbsoluteAngle() ));
         }
 
         @Override

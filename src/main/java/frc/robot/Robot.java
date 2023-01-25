@@ -90,7 +90,7 @@ public class Robot extends TimedRobot
     @Override
     public void autonomousInit()
     {
-        SteerControllerFactoryBuilder.ControllerImplementation.setAngleAbsolute();
+        //SteerControllerFactoryBuilder.ControllerImplementation.setAngleAbsolute();
 
         autonomousCommand = robotContainer.getAutonomousCommand();
         
@@ -111,7 +111,7 @@ public class Robot extends TimedRobot
     public void teleopInit()
     {
 
-        SteerControllerFactoryBuilder.ControllerImplementation.setAngleAbsolute();
+        //SteerControllerFactoryBuilder.ControllerImplementation.setAngleAbsolute();
 
         // This makes sure that the autonomous stops running when
         // teleop starts running. If you want the autonomous to
