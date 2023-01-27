@@ -10,7 +10,7 @@ import edu.wpi.first.math.kinematics.SwerveModuleState;
 import edu.wpi.first.wpilibj2.command.CommandBase;
 import frc.robot.Constants;
 import frc.robot.subsystems.DriveSubsystem;
-
+import frc.robot.subsystems.PID;
 
 
 /** An example command that uses an example subsystem. */
@@ -23,6 +23,8 @@ public class FieldOrientedDriveCommand extends CommandBase
 
     private int counter = 0;
 
+    private PID zeroPID = new PID(1.0, 0, 0.1, 5, 0.2, Math.PI / 180);
+
     /**
      * Creates a new ExampleCommand.
      *
@@ -30,6 +32,8 @@ public class FieldOrientedDriveCommand extends CommandBase
      */
     public FieldOrientedDriveCommand(DriveSubsystem driveSubsystem)
     {
+        zeroPID.setGoal(0);
+
         this.driveSubsystem = driveSubsystem;
         // Use addRequirements() here to declare subsystem dependencies.
         addRequirements(driveSubsystem);
@@ -45,14 +49,23 @@ public class FieldOrientedDriveCommand extends CommandBase
     @Override
     public void execute() {
 
-        if(Constants.joystick.getRawButtonPressed(8)) {
+        if (Constants.joystick.getRawButtonPressed(8)) {
             driveSubsystem.gyro.zeroYaw();
+        }
+
+        if (Constants.joystick.getRawButtonPressed(3)) {
+            turnToZero();
         }
 
         double[] input = getJoystickInput();
 
         ChassisSpeeds speeds =  ChassisSpeeds.fromFieldRelativeSpeeds(input[0] * Constants.driveSpeed, input[1] * Constants.driveSpeed, input[2] * Constants.turnSpeed, driveSubsystem.gyro.getRotation2d());
 
+        driveSubsystem.drive(speeds);
+    }
+
+    public void turnToZero() {
+        ChassisSpeeds speeds = new ChassisSpeeds(0, 0, zeroPID.calculate(driveSubsystem.gyro.getAngle()));
         driveSubsystem.drive(speeds);
     }
 

@@ -50,11 +50,11 @@ public class DriveSubsystem extends SubsystemBase
         gyroRoll = gyro.getRoll();
 
         ShuffleboardTab shuffleboardTab = Shuffleboard.getTab("Drivetrain");
-        frontLeftModule = ModuleBuilder.createModule(
+        frontLeftModule = ModuleBuilder.createModule( //ModuleBuilder.createModule     Mk4SwerveModuleHelper.createNeo
                 shuffleboardTab.getLayout("Front Left Module", BuiltInLayouts.kList)
                         .withSize(2, 2)
                         .withPosition(0, 0),
-                Mk4SwerveModuleHelper.GearRatio.L1, 2, 1, 51, -Math.toRadians(50 - 180)); //front left
+                Mk4SwerveModuleHelper.GearRatio.L1, 2, 1, 51, -Math.toRadians(-26.7)); //front left
         frontRightModule = ModuleBuilder.createModule(
                 shuffleboardTab.getLayout("Front Right Module", BuiltInLayouts.kList)
                         .withSize(2, 2)
@@ -64,7 +64,7 @@ public class DriveSubsystem extends SubsystemBase
                 shuffleboardTab.getLayout("Back Left Module", BuiltInLayouts.kList)
                         .withSize(2, 2)
                         .withPosition(4, 0),
-                Mk4SwerveModuleHelper.GearRatio.L1, 8, 7, 50, -Math.toRadians(26.4)); //back left
+                Mk4SwerveModuleHelper.GearRatio.L1, 8, 7, 50, -Math.toRadians(203 - 180)); //back left
         backRightModule = ModuleBuilder.createModule(
                 shuffleboardTab.getLayout("Back Right Module", BuiltInLayouts.kList)
                         .withSize(2, 2)

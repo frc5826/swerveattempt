@@ -104,7 +104,7 @@ public final class SteerControllerFactoryBuilder {
     }
 
     public static class ControllerImplementation implements SteerController {
-        private static final int ENCODER_RESET_ITERATIONS = 50;
+        private static final int ENCODER_RESET_ITERATIONS = 500;
         private static final double ENCODER_RESET_MAX_ANGULAR_VELOCITY = Math.toRadians(0.5);
 
         @SuppressWarnings({"FieldCanBeLocal", "unused"})
@@ -180,12 +180,13 @@ public final class SteerControllerFactoryBuilder {
 
             //controller.setOutputRange(-1, 1);
 
-            if (Math.abs(angleDifference) < Math.PI / 270 ) {
-                motor.stopMotor();
-            } else {
-                controller.setReference(adjustedReferenceAngleRadians, CANSparkMax.ControlType.kPosition);
-            }
+//            if (Math.abs(angleDifference) < Math.PI / 270 ) {
+//                motor.stopMotor();
+//            } else {
+//                controller.setReference(adjustedReferenceAngleRadians, CANSparkMax.ControlType.kPosition);
+//            }
 
+            controller.setReference(adjustedReferenceAngleRadians, CANSparkMax.ControlType.kPosition);
 
         }
 
