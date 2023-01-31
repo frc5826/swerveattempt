@@ -5,14 +5,15 @@
 
 package frc.robot;
 
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.Joystick;
 import edu.wpi.first.wpilibj.XboxController;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.CommandScheduler;
-import frc.robot.commands.AutoBalanceCommand;
-import frc.robot.commands.FieldOrientedDriveCommand;
-import frc.robot.commands.RobotOrientedDriveCommand;
+import frc.robot.commands.*;
 import frc.robot.subsystems.DriveSubsystem;
 
 
@@ -28,10 +29,9 @@ public class RobotContainer
     // The robot's subsystems and commands are defined here...
     private final DriveSubsystem driveSubsystem = new DriveSubsystem();
     
-    private final FieldOrientedDriveCommand autoCommand = new FieldOrientedDriveCommand(driveSubsystem);
-    private final RobotOrientedDriveCommand rodCommand = new RobotOrientedDriveCommand(driveSubsystem);
-
-
+    private final FieldOrientedDriveCommand fieldOrientedDriveCommand = new FieldOrientedDriveCommand(driveSubsystem);
+    private final RobotOrientedDriveCommand robotOrientedDriveCommand = new RobotOrientedDriveCommand(driveSubsystem);
+    private final AutoDriveCommand autoDriveCommand = new AutoDriveCommand(driveSubsystem, 0);
     
     /** The container for the robot. Contains subsystems, OI devices, and commands. */
     public RobotContainer()
@@ -39,7 +39,7 @@ public class RobotContainer
         // Configure the button bindings
         configureButtonBindings();
 
-        CommandScheduler.getInstance().setDefaultCommand(driveSubsystem, autoCommand);
+        CommandScheduler.getInstance().setDefaultCommand(driveSubsystem, fieldOrientedDriveCommand);
 
 
 
@@ -59,6 +59,8 @@ public class RobotContainer
         // See https://docs.wpilib.org/en/stable/docs/software/commandbased/binding-commands-to-triggers.html
         Constants.autobalance.toggleWhenActive(new AutoBalanceCommand(driveSubsystem));
         Constants.zeroGyro.whenActive(driveSubsystem::zeroGyro);
+
+        Constants.autoDrive.whenActive(autoDriveCommand);
     }
     
     
@@ -70,6 +72,6 @@ public class RobotContainer
     public Command getAutonomousCommand()
     {
         // An ExampleCommand will run in autonomous
-        return autoCommand;
+        return driveSubsystem.followTrajectoryCommand(PathPlanner.loadPath("New Path", 1, 1));
     }
 }

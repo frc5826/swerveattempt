@@ -6,18 +6,22 @@
 package frc.robot.subsystems;
 
 import com.kauailabs.navx.frc.AHRS;
+import com.pathplanner.lib.PathPlanner;
+import com.pathplanner.lib.PathPlannerTrajectory;
+import com.pathplanner.lib.commands.PPSwerveControllerCommand;
 import com.swervedrivespecialties.swervelib.Mk4SwerveModuleHelper;
 import com.swervedrivespecialties.swervelib.SwerveModule;
+import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.geometry.Rotation2d;
 import edu.wpi.first.math.geometry.Translation2d;
-import edu.wpi.first.math.kinematics.ChassisSpeeds;
-import edu.wpi.first.math.kinematics.SwerveDriveKinematics;
-import edu.wpi.first.math.kinematics.SwerveDriveOdometry;
-import edu.wpi.first.math.kinematics.SwerveModuleState;
+import edu.wpi.first.math.kinematics.*;
 import edu.wpi.first.wpilibj.SPI;
 import edu.wpi.first.wpilibj.shuffleboard.BuiltInLayouts;
 import edu.wpi.first.wpilibj.shuffleboard.Shuffleboard;
 import edu.wpi.first.wpilibj.shuffleboard.ShuffleboardTab;
+import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.InstantCommand;
+import edu.wpi.first.wpilibj2.command.SequentialCommandGroup;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 import com.swervedrivespecialties.swervelib.ctre.CanCoderFactoryBuilder;
 import frc.robot.Constants;
@@ -39,7 +43,8 @@ public class DriveSubsystem extends SubsystemBase
     private double gyroPitch;
     private double gyroRoll;
 
-    public final SwerveDriveOdometry odometry = new SwerveDriveOdometry(kinematics, Rotation2d.fromDegrees(gyro.getFusedHeading()));
+    public final SwerveDriveOdometry odometry;
+    public double fusedHeadingOffset;
 
 
     /** Creates a new ExampleSubsystem. */
@@ -77,12 +82,17 @@ public class DriveSubsystem extends SubsystemBase
         Translation2d backLeftWheel = new Translation2d(-0.257, 0.2794);
         Translation2d backRightWheel = new Translation2d(-0.257, -0.2794);
 
+        fusedHeadingOffset = gyro.getFusedHeading();
 
         kinematics = new SwerveDriveKinematics(frontLeftWheel, frontRightWheel, backLeftWheel, backRightWheel);
+        odometry = new SwerveDriveOdometry(kinematics, Rotation2d.fromDegrees(gyro.getFusedHeading() - fusedHeadingOffset));
 
         shuffleboardTab.addNumber("Gyroscope Angle", () -> gyro.getAngle());
         shuffleboardTab.addNumber("Gyroscope Pitch", () -> getGyroPitch());
         shuffleboardTab.addNumber("Gyroscope Roll", () -> getGyroRoll());
+        shuffleboardTab.addNumber("Pose X", () -> odometry.getPoseMeters().getX());
+        shuffleboardTab.addNumber("Pose Y", () -> odometry.getPoseMeters().getY());
+        shuffleboardTab.addNumber("Fused heading", () -> gyro.getFusedHeading() - fusedHeadingOffset);
         //odometry.getPoseMeters().getRotation().getDegrees()
 
     }
@@ -98,6 +108,13 @@ public class DriveSubsystem extends SubsystemBase
         SwerveModuleState backLeft = moduleStates[2];
         SwerveModuleState backRight = moduleStates[3];
 
+        odometry.update(Rotation2d.fromDegrees(gyro.getFusedHeading() - fusedHeadingOffset),
+                new SwerveModuleState(frontLeftModule.getDriveVelocity(), new Rotation2d(frontLeftModule.getSteerAngle())),
+                new SwerveModuleState(frontRightModule.getDriveVelocity(), new Rotation2d(frontRightModule.getSteerAngle())),
+                new SwerveModuleState(backLeftModule.getDriveVelocity(), new Rotation2d(backLeftModule.getSteerAngle())),
+                new SwerveModuleState(backRightModule.getDriveVelocity(), new Rotation2d(backRightModule.getSteerAngle()))
+        );
+
         //set motor speeds
         frontLeftModule.set(frontLeft.speedMetersPerSecond, frontLeft.angle.getRadians());
         frontRightModule.set(frontRight.speedMetersPerSecond, frontRight.angle.getRadians());
@@ -112,6 +129,27 @@ public class DriveSubsystem extends SubsystemBase
     public void zeroGyro() {
         gyroRoll = gyro.getRoll();
         gyroPitch = gyro.getPitch();
+    }
+
+    public Command followTrajectoryCommand(PathPlannerTrajectory path) {
+        return new SequentialCommandGroup(
+                new InstantCommand(() -> resetOdometry(path) ),
+                new PPSwerveControllerCommand(
+                        PathPlanner.loadPath("New Path", 1, 1),
+                        odometry::getPoseMeters,
+                        //TODO this.kinematics, //Add new drive command that takes Module State input.
+                        new PIDController(1, 0, 0),
+                        new PIDController(1, 0, 0),
+                        new PIDController(1, 0, 0),
+                        this::drive,
+                        true,
+                        this)
+        );
+    }
+
+    public void resetOdometry(PathPlannerTrajectory path) {
+        gyro.zeroYaw();
+        odometry.resetPosition(path.getInitialHolonomicPose(), gyro.getRotation2d());
     }
     
     @Override

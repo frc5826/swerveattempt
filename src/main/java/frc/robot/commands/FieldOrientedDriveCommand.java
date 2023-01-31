@@ -23,8 +23,6 @@ public class FieldOrientedDriveCommand extends CommandBase
 
     private int counter = 0;
 
-    private PID zeroPID = new PID(1.0, 0, 0.1, 5, 0.2, Math.PI / 180);
-
     /**
      * Creates a new ExampleCommand.
      *
@@ -32,7 +30,6 @@ public class FieldOrientedDriveCommand extends CommandBase
      */
     public FieldOrientedDriveCommand(DriveSubsystem driveSubsystem)
     {
-        zeroPID.setGoal(0);
 
         this.driveSubsystem = driveSubsystem;
         // Use addRequirements() here to declare subsystem dependencies.
@@ -51,21 +48,13 @@ public class FieldOrientedDriveCommand extends CommandBase
 
         if (Constants.joystick.getRawButtonPressed(8)) {
             driveSubsystem.gyro.zeroYaw();
-        }
-
-        if (Constants.joystick.getRawButtonPressed(3)) {
-            turnToZero();
+            driveSubsystem.fusedHeadingOffset = driveSubsystem.gyro.getFusedHeading();
         }
 
         double[] input = getJoystickInput();
 
         ChassisSpeeds speeds =  ChassisSpeeds.fromFieldRelativeSpeeds(input[0] * Constants.driveSpeed, input[1] * Constants.driveSpeed, input[2] * Constants.turnSpeed, driveSubsystem.gyro.getRotation2d());
 
-        driveSubsystem.drive(speeds);
-    }
-
-    public void turnToZero() {
-        ChassisSpeeds speeds = new ChassisSpeeds(0, 0, zeroPID.calculate(driveSubsystem.gyro.getAngle()));
         driveSubsystem.drive(speeds);
     }
 

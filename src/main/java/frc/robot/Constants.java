@@ -31,6 +31,8 @@ public final class Constants {
 
     public static final Trigger zeroGyro = new Trigger(() -> joystick.getRawButtonPressed(7));
 
+    public static final Trigger autoDrive = new Trigger(() -> joystick.getRawButtonPressed(3));
+
     //public static CANSparkMax turn = new CANSparkMax(1, CANSparkMaxLowLevel.MotorType.kBrushless);
     //public static CANSparkMax drive = new CANSparkMax(7, CANSparkMaxLowLevel.MotorType.kBrushless);
 
